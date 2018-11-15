@@ -7,11 +7,17 @@ import streetview
 #################
 
 # path to the base folder of the sample
-csv_path = 'D:/dev/vagrant/ubuntu14-04/computer-vision/samples/curitiba/periphery/'
+#csv_path = 'E:/computer-vision/samples/curitiba/periphery/' # curitiba
+csv_path = 'E:/computer-vision/samples/phoenix/periphery/' # phoenix
 #csv_path = '/afs/ir.stanford.edu/users/l/b/lbarleta/urban-discontents/streetview/phoenix/downtown/'
 
 # name of the csv (without extension) file with the sample coordinates (three columns in this order: sample_id, X, Y)
-csv_filename = 'sample_vila_pinto_50p_30m'
+#csv_filename = 'sample_points_1k' # curitiba
+csv_filename = 'phoenix_samples_1k_200m' # phoenix
+
+# set the id number you want the script to start processing. it will download all ids that are equal or higher than that.
+# set to -1 if you want to download the entire list
+start_id = -1
 
 # DEPRECATED - we're not using API key for now
 # create a python file in the same folder named safe.py with the following line:
@@ -36,17 +42,25 @@ if os.path.exists(img_dir+"tiles/") == False:
 	os.mkdir(img_dir+"tiles/")
 	
 # creates a new CSV to save the panoids for each sample LatLong
-with open(csv_path+csv_filename+"_panoids.csv", mode='w') as images:
-	fieldnames = ['sample_id','panoid','lat','lon','year','month','download']
-	writer = csv.DictWriter(images, fieldnames=fieldnames)
-	writer.writeheader()
+with open(csv_path+csv_filename+"_panoids.csv", mode='a') as images:
+	
+	# write header in case it is a new file
+	if start_id == -1:
+		fieldnames = ['sample_id','panoid','lat','lon','year','month','download']
+		writer = csv.DictWriter(images, fieldnames=fieldnames)
+		writer.writeheader()
 	
 	# iterates through the csv with the sample LatLong
 	with open(csv_path+csv_filename+".csv", 'r') as f:
 		reader = csv.reader(f)
-			
+		
 		#For each sample
 		for row in reader:
+			# uncomment for starting at a certain sample_id
+			if row[0] == 'id' or int(row[0]) < start_id:
+				print('jumping id: '+ row[0])
+				continue
+                   
 			#search for panoids
 			panoids = streetview.panoids(lat=row[2], lon=row[1])
 			

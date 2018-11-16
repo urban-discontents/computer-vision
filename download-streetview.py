@@ -3,29 +3,42 @@
 import csv, random, sys, os, shutil
 # makes sure you have this library: https://github.com/robolyst/streetview
 import streetview
+from PIL import Image
 
 # importing parameters
 from par_streetview import *
 
 # create image and tiles directories
 img_dir = csv_path+"images/"
+imglow_dir = csv_path+"images-low/"
 if os.path.exists(img_dir) == False:
 	os.mkdir(img_dir)
+	os.mkdir(imglow_dir)
 	
 # creates a new CSV to save the panoids for each sample LatLong
 with open(csv_path+csv_filename+"_panoids.csv", mode='w') as images:
-	fieldnames = ['sample_id','panoid','lat','lon','year','month','download']
-	writer = csv.DictWriter(images, fieldnames=fieldnames)
-	writer.writeheader()
 	
+	# write header in case it is a new file
+	if start_id == -1:
+		fieldnames = ['sample_id','panoid','lat','lon','year','month','download']
+		writer = csv.DictWriter(images, fieldnames=fieldnames)
+		writer.writeheader()
+		
 	# iterates through the csv with the sample LatLong
 	with open(csv_path+csv_filename+".csv", 'r') as f:
 		reader = csv.reader(f)
 			
 		#For each sample
 		for row in reader:
+			# uncomment for starting at a certain sample_id
+			if row[0] == 'id' or int(row[0]) < start_id:
+				print('jumping id '+ row[0])
+				continue
+				
 			#search for panoids
 			panoids = streetview.panoids(lat=row[2], lon=row[1])
+			
+			print(panoids)
 			
 			# select a random panoid for download
 			if panoids:
@@ -60,11 +73,17 @@ with open(csv_path+csv_filename+"_panoids.csv", mode='w') as images:
 					# stiching tiles together
 					streetview.stich_tiles(panoid['panoid'], tiles, tile_dir, img_dir)
 					
+					# generating low resolutionTODO
+					print("generating low resolution image for "+ row[0] +" : "+ panoid['panoid'] +"...")
+					img_file = Image.open(img_dir+panoid['panoid']+extension)
+					resized = img_file.resize((width, height), Image.ANTIALIAS)
+					resized.save(imglow_dir+panoid['panoid']+extension)
+					
 					## uncomment this images for also downloading the 2d images
-					streetview.api_download(panoid['panoid'], 0, pano_dir)
-					streetview.api_download(panoid['panoid'], 90, pano_dir)
-					streetview.api_download(panoid['panoid'], 180, pano_dir)
-					streetview.api_download(panoid['panoid'], 270, pano_dir)
+					#streetview.api_download(panoid['panoid'], 0, pano_dir)
+					#streetview.api_download(panoid['panoid'], 90, pano_dir)
+					#streetview.api_download(panoid['panoid'], 180, pano_dir)
+					#streetview.api_download(panoid['panoid'], 270, pano_dir)
 
 					# deleting tile files
 					shutil.rmtree(tile_dir)

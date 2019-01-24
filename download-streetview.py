@@ -28,6 +28,7 @@ with open(csv_path+csv_filename+"_panoids.csv", mode='a') as images:
     imglow_dir = csv_path+"images-low/"
     if os.path.exists(img_dir) == False:
     	os.mkdir(img_dir)
+    if os.path.exists(imglow_dir) == False:
     	os.mkdir(imglow_dir)
 
     # creates a new CSV to save the panoids for each sample LatLong

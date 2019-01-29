@@ -3,3 +3,7 @@ safe.py
 __pycache__/*
 samples/
 turks/
+par_streetview.py
+par_google_integration.py
+img_samples/
+testing-urban-b5ca3188f903.json

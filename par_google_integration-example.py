@@ -1,10 +1,15 @@
+## Credetials for Google Computer Vision (.json)
+credentials_file = ''
 
+## Base Folder
+base_folder = ''
 
 ## CSV file with a list of images to analyze
-## csv_file = ''
+## Do not add .csv at the end
+csv_images = ''
 
 ## Folder with the images
-## img_folder =
+fld_images = ''
 
-## Google API Key
-##api_key = 
+## Number of results expected
+res_num = 10

@@ -63,4 +63,13 @@ images.to_csv(output_file)
 print("Showing sample results...")
 print(images.sample(10))
 
+# Creating summary with total of objects recognized
+print('Creating a summary file...')
+summary = pd.DataFrame(columns=['obj'])
+
+for i in range(res_num):
+    summary = summary.append(images[['obj'+str(i+1)]].rename(columns={'obj'+str(i+1): "obj"}), ignore_index = True)
+
+summary.groupby('obj').size().to_csv(base_folder+csv_images+'_googlevision_summary.csv')
+
 print("Execution ended.")

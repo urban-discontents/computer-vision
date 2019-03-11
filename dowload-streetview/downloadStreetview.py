@@ -8,7 +8,7 @@ class DownloadSamples:
     width = 1000
     height = 500
 
-    def __init__(self, csv_file, sample_name, init=0):
+    def __init__(self, csv_file, sample_name):
         print('Initialization the download of sample: '+ sample_name)
         self._input = os.path.join(sample_name, csv_file + '.csv')
         self._output = os.path.join(sample_name, csv_file + '_panoids.csv')
@@ -22,8 +22,6 @@ class DownloadSamples:
         if os.path.isdir(self._tiles_dir) == True:
             shutil.rmtree(self._tiles_dir)
 
-        print(self._tiles_dir)
-
         os.mkdir(self._tiles_dir)
 
         if os.path.isdir(self._lowres_dir) == False:
@@ -33,19 +31,26 @@ class DownloadSamples:
         # open csv file and prepare dataset
         self._list = pd.read_csv(self._input);
         self._list['panoid'] = ''
-        self._list['year'] = ''
-        self._list['month'] = ''
+        self._list['year'] = 0
+        self._list['month']= 0
         self._list['download'] = 'n'
 
         # don't generate panoid list if already exists
         if os.path.isfile(self._output) == False:
-            self.GetRandomPanoIds()
+            self._list.to_csv(self._output, index=False)
+        else:
+            self._list = pd.read_csv(self._output)
 
+        self.GetRandomPanoIds()
         self.DownloadPanos()
 
     def GetRandomPanoIds(self):
-        print('Fetching panos info')
-        for index, row in self._list.iterrows():
+        print('Fetching panos info (this step may take several minutes)')
+        counter = 0
+        start_time = time.time()
+        filter = self._list["download"] == "n"
+
+        for index, row in self._list[filter].iterrows():
             # get all pano ids for each image
             panoids = streetview.panoids(lat=row[2], lon=row[1])
 
@@ -54,6 +59,7 @@ class DownloadSamples:
                 panoid = random.choice(panoids)
 
                 self._list.at[index, 'panoid'] = panoid['panoid']
+                self._list.at[index, 'download'] = 'r'
 
                 if 'year' in panoid:
                     self._list.at[index, 'year'] = panoid['year']
@@ -62,13 +68,17 @@ class DownloadSamples:
             else:
                 self._list.at[index, 'download'] = 'x'
 
-            # saving the list with selected panoids
-            self._list.to_csv(self._output, index=False)
+            counter = counter + 1
+            if counter % 50 == 0:
+                print("Fetched "+ str(counter) + " panoids in "+ str(time.time() - start_time) + " seconds")
+                start_time = time.time()
+
+                # saving the list with selected panoids every 100 rows
+                self._list.to_csv(self._output, index=False)
 
     def DownloadPanos(self):
         # load dataframe with panoids
-        self._list = pd.read_csv(self._output)
-        filter = self._list["download"] == "n"
+        filter = self._list["download"] == "r"
 
         for index, row in self._list[filter].iterrows():
             start_time = time.time()
@@ -178,3 +188,5 @@ class Equirectangular:
 
         persp = cv2.remap(self._img, lon.astype(np.float32), lat.astype(np.float32), cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
         return persp
+
+print("nothing here")

@@ -99,7 +99,6 @@ class DownloadSamples:
             resized = img_file.resize((self.width, self.height), Image.ANTIALIAS)
             resized.save(os.path.join(self._lowres_dir,str(row['id']).rjust(6,'0') +'_'+ row['panoid']+self.ext))
 
-            print("Download completed in "+ str(time.time() - start_time) + " seconds")
 
             # generating 4 perspectives
             equ = Equirectangular(os.path.join(pano_dir, row['panoid']+self.ext))
@@ -110,6 +109,11 @@ class DownloadSamples:
                 print('Saved perspective ' + str(j*90))
 
             self._list.to_csv(self._output, index=False)
+
+            for filename in glob.glob(os.path.join(self._tiles_dir, row['panoid'] +"*")):
+                os.remove(filename)
+
+            print("Download completed in "+ str(time.time() - start_time) + " seconds")
 
         shutil.rmtree(self._tiles_dir)
         print("Download completed!")

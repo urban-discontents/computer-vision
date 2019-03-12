@@ -1,7 +1,9 @@
 import streetview, os.path, random, time, shutil, cv2, glob, sys, json
 import numpy as np
 import pandas as pd
-from PIL import Image
+from PIL import Image, ImageFile
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class DownloadSamples:
     ext = '.jpg'
@@ -88,17 +90,17 @@ class DownloadSamples:
             streetview.download_tiles(tiles, self._tiles_dir)
 
             pano_dir = os.path.join(self._highres_dir,str(row['id']).rjust(6,'0') +'_'+ row['panoid'])
-            os.mkdir(pano_dir)
+            if os.path.isdir(pano_dir) == False:
+                os.mkdir(pano_dir)
 
             streetview.stich_tiles(row['panoid'], tiles, self._tiles_dir, pano_dir)
-            self._list.at[index, 'download'] = 'y'
+            self._list.at[index, 'download'] = 'y' # download successfull
 
             # generating low resolution
-            print("Generating low-res image  "+ str(row['id']))
+            print("Generating low-res image "+ str(row['id']))
             img_file = Image.open(os.path.join(pano_dir, row['panoid']+self.ext))
             resized = img_file.resize((self.width, self.height), Image.ANTIALIAS)
             resized.save(os.path.join(self._lowres_dir,str(row['id']).rjust(6,'0') +'_'+ row['panoid']+self.ext))
-
 
             # generating 4 perspectives
             equ = Equirectangular(os.path.join(pano_dir, row['panoid']+self.ext))
@@ -108,8 +110,13 @@ class DownloadSamples:
                 cv2.imwrite(oupname, img, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
                 print('Saved perspective ' + str(j*90))
 
+#            except:
+#                self._list.at[index, 'download'] = 'n' # n again, to search for a new panoid in the next run
+#                print("Image "+ str(row['id']) +" couldn't be downloaded.")
+
             self._list.to_csv(self._output, index=False)
 
+            # remove tiles
             for filename in glob.glob(os.path.join(self._tiles_dir, row['panoid'] +"*")):
                 os.remove(filename)
 

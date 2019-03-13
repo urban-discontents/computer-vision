@@ -1,4 +1,4 @@
-import streetview, os.path, random, time, shutil, cv2, glob, sys, json
+import streetview, os.path, random, time, shutil, cv2, glob, sys, json, imghdr
 import numpy as np
 import pandas as pd
 from PIL import Image, ImageFile
@@ -89,30 +89,31 @@ class DownloadSamples:
             tiles = streetview.tiles_info(row['panoid'])
             streetview.download_tiles(tiles, self._tiles_dir)
 
-            pano_dir = os.path.join(self._highres_dir,str(row['id']).rjust(6,'0') +'_'+ row['panoid'])
-            if os.path.isdir(pano_dir) == False:
-                os.mkdir(pano_dir)
+            if imghdr.what(os.path.join(self._tiles_dir,tiles[0][2])) != None:
+                pano_dir = os.path.join(self._highres_dir,str(row['id']).rjust(6,'0') +'_'+ row['panoid'])
+                if os.path.isdir(pano_dir) == False:
+                    os.mkdir(pano_dir)
 
-            streetview.stich_tiles(row['panoid'], tiles, self._tiles_dir, pano_dir)
-            self._list.at[index, 'download'] = 'y' # download successfull
+                streetview.stich_tiles(row['panoid'], tiles, self._tiles_dir, pano_dir)
+                self._list.at[index, 'download'] = 'y' # download successfull
 
-            # generating low resolution
-            print("Generating low-res image "+ str(row['id']))
-            img_file = Image.open(os.path.join(pano_dir, row['panoid']+self.ext))
-            resized = img_file.resize((self.width, self.height), Image.ANTIALIAS)
-            resized.save(os.path.join(self._lowres_dir,str(row['id']).rjust(6,'0') +'_'+ row['panoid']+self.ext))
+                # generating low resolution
+                print("Generating low-res image "+ str(row['id']))
+                img_file = Image.open(os.path.join(pano_dir, row['panoid']+self.ext))
+                resized = img_file.resize((self.width, self.height), Image.ANTIALIAS)
+                resized.save(os.path.join(self._lowres_dir,str(row['id']).rjust(6,'0') +'_'+ row['panoid']+self.ext))
 
-            # generating 4 perspectives
-            equ = Equirectangular(os.path.join(pano_dir, row['panoid']+self.ext))
-            for j in range(4):
-                img = equ.GetPerspective(90, j*90, 0, 2400, 2400)
-                oupname = os.path.join(pano_dir, "view_"+ str(j) + self.ext)
-                cv2.imwrite(oupname, img, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
-                print('Saved perspective ' + str(j*90))
+                # generating 4 perspectives
+                equ = Equirectangular(os.path.join(pano_dir, row['panoid']+self.ext))
+                for j in range(4):
+                    img = equ.GetPerspective(90, j*90, 0, 2400, 2400)
+                    oupname = os.path.join(pano_dir, "view_"+ str(j) + self.ext)
+                    cv2.imwrite(oupname, img, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+                    print('Saved perspective ' + str(j*90))
 
-#            except:
-#                self._list.at[index, 'download'] = 'n' # n again, to search for a new panoid in the next run
-#                print("Image "+ str(row['id']) +" couldn't be downloaded.")
+            else:
+                self._list.at[index, 'download'] = 'n' # n again, to search for a new panoid in the next run
+                print("Image "+ str(row['id']) +" couldn't be downloaded. The script you check for a new panoid in the next run.")
 
             self._list.to_csv(self._output, index=False)
 

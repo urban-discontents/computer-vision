@@ -11,3 +11,4 @@ amazon-rekognition/README_amazon.txt
 google-vision/cv_google_integration.py
 google-vision/par_google_integration-example.py
 google-vision/par_google_integration.py
+download-streetview/run.py

@@ -1,7 +1,4 @@
 #!/usr/bin/python
-import os.path
-from downloadStreetview import *
-
 ##########
 # CONFIG #
 ##########
@@ -15,6 +12,8 @@ csv_filename = 'tainan2015_10k_100m'
 #########################################
 # DON'T CHANGE ANYTHING BELOW THIS LINE #
 #########################################
+import os.path
+from downloadStreetview import *
 
 csv_path = os.path.join('E:/streetview', 'samples', sample)
 # csv_path = os.path.join('..','samples',sample)

@@ -3,10 +3,10 @@ from PIL import Image
 import os
 
 # folder with the images
-input_dir = "E:\\streetview\\samples\\philly\\urbanextent14\\high-res\\"
+input_dir = "E:\\streetview\\samples\\tainan\\urbanextent14\\high-res\\"
 
 # output dir
-output_dir = "E:\\streetview\\samples\\philly\\urbanextent14\\low-res\\"
+output_dir = "E:\\streetview\\samples\\tainan\\urbanextent14\\low-res\\"
 
 # extension of the files
 ext = ".jpg"
@@ -23,16 +23,17 @@ if os.path.exists(output_dir) == False:
 for root, dirs, files in os.walk(input_dir):
 	for dir in dirs:
 		# creates the folder
-		if os.path.exists(output_dir + dir) == False:
+		if os.path.exists(output_dir + dir) == True:
+			print(dir +" jumped!")
+		else:
 			os.mkdir(output_dir + dir)
+			for root, dirs, files in os.walk(os.path.join(input_dir,dir)):
+				for filename in files:
+					# open image file
+					img_file = Image.open(os.path.join(input_dir, dir, filename))
+					# resize using ANTIALIAS (other options are NEAREST, BILINEAR, and BICUBIC)
+					resized = img_file.resize((width, height), Image.ANTIALIAS)
+					# saving
+					resized.save(os.path.join(output_dir, dir, filename))
 
-		for root, dirs, files in os.walk(input_dir+dir):
-			for filename in files:
-				# open image file
-				img_file = Image.open(os.path.join(input_dir, dir, filename))
-				# resize using ANTIALIAS (other options are NEAREST, BILINEAR, and BICUBIC)
-				resized = img_file.resize((width, height), Image.ANTIALIAS)
-				# saving
-				resized.save(os.path.join(output_dir, dir, filename))
-
-		print(dir +" resized!")
+			print(dir +" resized!")

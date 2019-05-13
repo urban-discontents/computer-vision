@@ -7,10 +7,10 @@ from downloadStreetview import *
 ##########
 
 # path to the base folder of the sample
-sample = 'curitiba/urbanextent14'
+sample = 'tainan/urbanextent14'
 
 # name of the csv (without extension) file with the sample coordinates (three columns in this order: sample_id, X, Y)
-csv_filename = 'curitiba14_10k_100m'
+csv_filename = 'tainan2015_10k_100m'
 
 #########################################
 # DON'T CHANGE ANYTHING BELOW THIS LINE #
